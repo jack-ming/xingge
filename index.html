@@ -1,0 +1,1322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Which Type Are You? — Personality Quest</title>
+<meta name="description" content="A 2-minute game that reveals your true personality type." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ============ 设计变量 ============ */
+:root{
+  --bg-1:#FFE3D3; --bg-2:#E8DEFF; --bg-3:#C9E7FF;
+  --ink:#1F1A33; --ink-soft:#5B5575;
+  --paper:#FFFFFF; --line:#ECEAF5;
+  --radius:24px;
+  --shadow:0 18px 50px -18px rgba(60,40,120,.28);
+  --shadow-sm:0 6px 18px -8px rgba(60,40,120,.22);
+  --E:#FF6B6B; --I:#3DBDB6; --S:#4CAF50; --N:#8B5CF6;
+  --T:#2E9BFF; --F:#EC4899; --J:#5B5FEF; --P:#F59E0B;
+  --font-body:'Plus Jakarta Sans',system-ui,-apple-system,'PingFang SC','Hiragino Kaku Gothic ProN','Microsoft YaHei',sans-serif;
+  --font-display:'Fraunces',Georgia,serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:var(--font-body);color:var(--ink);
+  background:linear-gradient(135deg,var(--bg-1) 0%,var(--bg-2) 50%,var(--bg-3) 100%);
+  background-attachment:fixed;min-height:100vh;overflow-x:hidden;position:relative;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ============ 背景装饰 ============ */
+.bg-decor{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none}
+.blob{position:absolute;border-radius:50%;filter:blur(40px);opacity:.5;animation:float 14s ease-in-out infinite}
+.blob.b1{width:340px;height:340px;background:#FFD1D1;top:-80px;left:-60px}
+.blob.b2{width:280px;height:280px;background:#D6CCFF;bottom:-60px;right:-40px;animation-delay:-4s}
+.blob.b3{width:200px;height:200px;background:#BFEBFF;top:40%;right:10%;animation-delay:-8s}
+@keyframes float{0%,100%{transform:translateY(0) translateX(0) scale(1)}50%{transform:translateY(-30px) translateX(20px) scale(1.05)}}
+
+/* ============ 顶部控制栏 ============ */
+.top-bar{position:fixed;top:16px;left:0;right:0;z-index:50;display:flex;justify-content:space-between;align-items:center;padding:0 18px;pointer-events:none}
+.top-bar > *{pointer-events:auto}
+.lang-switcher{display:flex;gap:4px;background:rgba(255,255,255,.7);backdrop-filter:blur(10px);padding:5px;border-radius:999px;box-shadow:var(--shadow-sm)}
+.lang-switcher button{
+  border:none;background:transparent;font-family:inherit;font-weight:700;font-size:12px;
+  color:var(--ink-soft);padding:7px 12px;border-radius:999px;cursor:pointer;transition:all .2s;
+}
+.lang-switcher button.active{background:var(--ink);color:#fff}
+.lang-switcher button:not(.active):hover{color:var(--ink)}
+.sound-toggle{
+  width:42px;height:42px;border:none;border-radius:999px;cursor:pointer;
+  background:rgba(255,255,255,.7);backdrop-filter:blur(10px);box-shadow:var(--shadow-sm);
+  font-size:18px;display:flex;align-items:center;justify-content:center;transition:transform .2s;
+}
+.sound-toggle:hover{transform:scale(1.08)}
+.sound-toggle.muted{opacity:.55}
+
+/* ============ 通用布局 ============ */
+.app{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:70px 20px 60px;min-height:100vh}
+.screen{display:none;animation:fadeUp .5s cubic-bezier(.2,.8,.25,1)}
+.screen.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ============ 开始页 ============ */
+.start-wrap{display:flex;flex-direction:column;align-items:center;text-align:center;padding-top:4vh}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:var(--paper);border-radius:999px;box-shadow:var(--shadow-sm);font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:24px}
+.badge .dot{width:8px;height:8px;border-radius:50%;background:var(--F);animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}
+.title{font-family:var(--font-display);font-weight:800;font-size:clamp(40px,8vw,72px);line-height:1.02;letter-spacing:-.02em;margin-bottom:18px}
+.title .grad{background:linear-gradient(90deg,#FF6B6B,#8B5CF6,#2E9BFF);-webkit-background-clip:text;background-clip:text;color:transparent}
+.subtitle{font-size:clamp(16px,2.4vw,19px);color:var(--ink-soft);max-width:480px;margin:0 auto 36px;line-height:1.55}
+.emoji-hero{font-size:clamp(72px,18vw,140px);margin-bottom:12px;filter:drop-shadow(0 12px 20px rgba(0,0,0,.12));animation:bobble 3s ease-in-out infinite}
+@keyframes bobble{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-12px) rotate(2deg)}}
+.btn-primary{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  background:var(--ink);color:#fff;border:none;cursor:pointer;
+  font-family:inherit;font-weight:700;font-size:18px;padding:18px 42px;border-radius:999px;
+  box-shadow:0 12px 30px -10px rgba(31,26,51,.5);transition:transform .2s,box-shadow .2s;
+}
+.btn-primary:hover{transform:translateY(-3px);box-shadow:0 18px 40px -10px rgba(31,26,51,.55)}
+.btn-primary:active{transform:translateY(0)}
+.meta-row{display:flex;gap:24px;margin-top:32px;flex-wrap:wrap;justify-content:center}
+.meta-item{display:flex;flex-direction:column;align-items:center;gap:4px}
+.meta-item .num{font-family:var(--font-display);font-weight:800;font-size:28px;color:var(--ink)}
+.meta-item .lbl{font-size:12px;color:var(--ink-soft);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+
+/* ============ 答题页 ============ */
+.quiz-top{display:flex;align-items:center;gap:16px;margin-bottom:28px}
+.progress-track{flex:1;height:10px;background:rgba(255,255,255,.6);border-radius:999px;overflow:hidden;box-shadow:inset 0 1px 3px rgba(0,0,0,.06)}
+.progress-bar{height:100%;width:0;background:linear-gradient(90deg,#FF6B6B,#8B5CF6,#2E9BFF);border-radius:999px;transition:width .5s cubic-bezier(.2,.8,.25,1)}
+.q-counter{font-size:13px;font-weight:700;color:var(--ink-soft);white-space:nowrap}
+.q-counter b{color:var(--ink);font-size:15px}
+.question{font-family:var(--font-display);font-weight:600;font-size:clamp(22px,5vw,32px);line-height:1.25;letter-spacing:-.01em;margin-bottom:32px;min-height:1.2em;transition:opacity .35s}
+.question .q-mark{display:inline-block;color:#8B5CF6;margin-right:8px}
+.options{display:flex;flex-direction:column;gap:14px}
+.option{
+  display:flex;align-items:center;gap:18px;background:var(--paper);border:2px solid transparent;
+  padding:22px 24px;border-radius:var(--radius);cursor:pointer;text-align:left;width:100%;
+  font-family:inherit;font-size:17px;font-weight:500;color:var(--ink);box-shadow:var(--shadow-sm);
+  transition:transform .18s,border-color .18s,box-shadow .18s;
+}
+.option:hover{transform:translateY(-2px);border-color:#D6CCFF;box-shadow:var(--shadow)}
+.option:active{transform:scale(.99)}
+.option .key{flex-shrink:0;width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#FFE3D3,#E8DEFF);display:flex;align-items:center;justify-content:center;font-weight:800;font-family:var(--font-display);color:var(--ink);font-size:18px;transition:transform .2s}
+.option:hover .key{transform:scale(1.1) rotate(-5deg)}
+.option .arrow{margin-left:auto;color:#C9C4DD;font-size:22px;opacity:0;transform:translateX(-6px);transition:all .2s}
+.option:hover .arrow{opacity:1;transform:translateX(0)}
+.quiz-bottom-hint{margin-top:28px;text-align:center;font-size:13px;color:var(--ink-soft)}
+.quiz-bottom-hint kbd{background:var(--paper);padding:2px 8px;border-radius:6px;font-family:inherit;font-weight:700;font-size:12px;box-shadow:var(--shadow-sm)}
+
+/* ============ 结果页 ============ */
+.result-hero{text-align:center;padding:8px 0 12px}
+.result-tag{font-size:13px;font-weight:700;color:var(--ink-soft);letter-spacing:.16em;text-transform:uppercase;margin-bottom:8px}
+.type-code{font-family:var(--font-display);font-weight:800;font-size:clamp(72px,20vw,150px);line-height:1;letter-spacing:-.04em;display:flex;justify-content:center;gap:2px;margin-bottom:6px}
+.type-code .ltr{display:inline-block;opacity:0;transform:translateY(40px) scale(.6);animation:letterPop .5s cubic-bezier(.2,1.4,.4,1) forwards}
+@keyframes letterPop{to{opacity:1;transform:translateY(0) scale(1)}}
+.type-nick{font-family:var(--font-display);font-size:clamp(22px,5vw,30px);font-weight:600;margin-bottom:18px;color:var(--ink)}
+.type-group{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:999px;font-size:14px;font-weight:700;margin-bottom:24px}
+.type-group .icn{font-size:16px}
+.result-card{background:var(--paper);border-radius:28px;padding:32px 28px;box-shadow:var(--shadow);margin-bottom:20px}
+.result-card h3{font-family:var(--font-display);font-size:20px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.result-desc{font-size:17px;line-height:1.65;color:var(--ink-soft)}
+.strengths{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.strengths li{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#FFF7F0,#F4F0FF);padding:14px;border-radius:14px;font-size:14px;font-weight:600}
+.strengths li .star{flex-shrink:0;color:#8B5CF6}
+.stat-row{display:flex;justify-content:space-around;text-align:center}
+.stat-row .stat .v{font-family:var(--font-display);font-weight:800;font-size:30px;line-height:1}
+.stat-row .stat .k{font-size:12px;color:var(--ink-soft);font-weight:600;margin-top:6px;text-transform:uppercase;letter-spacing:.05em}
+
+/* 名人模块 */
+.famous-list{list-style:none;display:flex;flex-direction:column;gap:14px}
+.famous-item{display:flex;align-items:center;gap:14px}
+.famous-item .avatar{
+  flex-shrink:0;width:48px;height:48px;border-radius:14px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-display);font-weight:800;font-size:20px;color:#fff;
+}
+.famous-item .finfo .fname{font-weight:700;font-size:16px}
+.famous-item .finfo .frole{font-size:13px;color:var(--ink-soft);margin-top:2px}
+
+/* 维度条 */
+.dims{display:flex;flex-direction:column;gap:16px;margin-top:8px}
+.dim{font-size:13px}
+.dim-top{display:flex;justify-content:space-between;margin-bottom:6px;font-weight:700}
+.dim-top .winner{text-decoration:underline;text-underline-offset:3px}
+.dim-bar{height:10px;border-radius:999px;overflow:hidden;display:flex;background:#F0EDFA}
+.dim-bar .seg{height:100%;width:0;transition:width .9s cubic-bezier(.2,.8,.25,1) .2s}
+
+.result-actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+.btn-ghost{
+  display:inline-flex;align-items:center;gap:8px;background:var(--paper);color:var(--ink);border:2px solid var(--line);
+  font-family:inherit;font-weight:700;font-size:15px;padding:14px 26px;border-radius:999px;cursor:pointer;transition:transform .18s,border-color .18s;
+}
+.btn-ghost:hover{transform:translateY(-2px);border-color:#C9BFFF}
+
+/* 分享弹窗 */
+.share-modal{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(31,26,51,0.55);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.share-modal.show{display:flex;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.share-modal .share-card{
+  background:var(--paper);border-radius:28px;padding:28px 24px 24px;
+  max-width:420px;width:100%;max-height:92vh;overflow-y:auto;
+  position:relative;box-shadow:0 30px 80px -20px rgba(0,0,0,.45);
+  animation:popIn .3s cubic-bezier(.2,1.2,.4,1);
+}
+@keyframes popIn{from{opacity:0;transform:scale(.92) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.share-modal .share-close{
+  position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:50%;
+  border:none;background:#F0EDFA;cursor:pointer;font-size:20px;color:var(--ink);
+  display:flex;align-items:center;justify-content:center;transition:background .2s;
+}
+.share-modal .share-close:hover{background:#E4DEF5}
+.share-modal h3{font-family:var(--font-display);font-size:22px;font-weight:700;margin-bottom:16px;padding-right:40px}
+.share-preview{border-radius:18px;overflow:hidden;margin-bottom:18px;background:#F0EDFA;box-shadow:var(--shadow-sm)}
+.share-preview img{width:100%;display:block}
+.share-buttons{display:flex;flex-direction:column;gap:10px}
+.share-buttons button{width:100%;justify-content:center}
+.share-tip{font-size:13px;color:var(--ink-soft);text-align:center;margin-top:12px;line-height:1.5}
+
+/* Toast */
+.toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:14px 24px;border-radius:999px;font-weight:600;font-size:14px;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:all .3s;z-index:99}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* 隐藏的 canvas 用于生成分享图 */
+.share-canvas{display:none}
+
+@media(max-width:520px){
+  .strengths{grid-template-columns:1fr}
+  .option{padding:18px;font-size:16px}
+  .meta-row{gap:18px}
+  .top-bar{padding:0 12px}
+  .app{padding:70px 16px 60px}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-decor" aria-hidden="true">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+</div>
+
+<!-- 顶部控制：语言切换 + 音效开关 -->
+<div class="top-bar">
+  <div class="lang-switcher" id="lang-switcher">
+    <button data-lang="en" class="active">EN</button>
+    <button data-lang="zh">中文</button>
+    <button data-lang="ja">日本語</button>
+  </div>
+  <button class="sound-toggle" id="sound-toggle" title="Sound">🔊</button>
+</div>
+
+<main class="app">
+  <!-- ============ 开始页 ============ -->
+  <section class="screen active" id="screen-start">
+    <div class="start-wrap">
+      <div class="emoji-hero">🔮</div>
+      <span class="badge"><span class="dot"></span> <span data-i18n="badge">2 minutes · 16 possible types</span></span>
+      <h1 class="title"><span data-i18n="title1">What's Your</span><br><span class="grad" data-i18n="title2">True Type?</span></h1>
+      <p class="subtitle" data-i18n="subtitle">Answer 12 quick scenario questions and discover which of the 16 personality types fits you best. No emails. No sign-up. Just play.</p>
+      <button class="btn-primary" id="btn-start"><span data-i18n="startBtn">Start the Quest</span> <span>→</span></button>
+      <div class="meta-row">
+        <div class="meta-item"><span class="num">16</span><span class="lbl" data-i18n="m_types">Types</span></div>
+        <div class="meta-item"><span class="num">12</span><span class="lbl" data-i18n="m_q">Questions</span></div>
+        <div class="meta-item"><span class="num">2 min</span><span class="lbl" data-i18n="m_time">To Play</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 答题页 ============ -->
+  <section class="screen" id="screen-quiz">
+    <div class="quiz-top">
+      <div class="progress-track"><div class="progress-bar" id="progress"></div></div>
+      <div class="q-counter"><b id="q-now">1</b>/<span id="q-total">12</span></div>
+    </div>
+    <h2 class="question" id="question-text"></h2>
+    <div class="options" id="options"></div>
+    <p class="quiz-bottom-hint"><span data-i18n="hint">Tip: tap an option or press</span> <kbd>A</kbd> / <kbd>B</kbd></p>
+  </section>
+
+  <!-- ============ 结果页 ============ -->
+  <section class="screen" id="screen-result">
+    <div class="result-hero">
+      <div class="result-tag" data-i18n="youAre">You are</div>
+      <div class="type-code" id="type-code"></div>
+      <div class="type-nick" id="type-nick"></div>
+      <div class="type-group" id="type-group"></div>
+    </div>
+
+    <div class="result-card">
+      <h3>💫 <span data-i18n="aboutYou">About you</span></h3>
+      <p class="result-desc" id="type-desc"></p>
+    </div>
+
+    <div class="result-card">
+      <h3>⭐ <span data-i18n="strengths">Your strengths</span></h3>
+      <ul class="strengths" id="strengths"></ul>
+    </div>
+
+    <div class="result-card">
+      <h3>🌟 <span data-i18n="famous">You're in good company</span></h3>
+      <ul class="famous-list" id="famous-list"></ul>
+    </div>
+
+    <div class="result-card">
+      <h3>📊 <span data-i18n="traits">Your traits</span></h3>
+      <div class="dims" id="dims"></div>
+    </div>
+
+    <div class="result-card">
+      <div class="stat-row">
+        <div class="stat"><div class="v" id="rarity-v">—</div><div class="k" data-i18n="ofPeople">Of people</div></div>
+        <div class="stat"><div class="v" id="rarity-rank">—</div><div class="k" data-i18n="rarity">Rarity rank</div></div>
+      </div>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn-primary" id="btn-share">📤 <span data-i18n="shareImg">Share my type</span></button>
+      <button class="btn-ghost" id="btn-retry">↺ <span data-i18n="retry">Play again</span></button>
+    </div>
+  </section>
+</main>
+
+<!-- 分享弹窗 -->
+<div class="share-modal" id="share-modal">
+  <div class="share-card">
+    <button class="share-close" id="share-close" aria-label="Close">×</button>
+    <h3 data-i18n="shareTitle">Share your result</h3>
+    <div class="share-preview"><img id="share-preview-img" alt="Result card" /></div>
+    <div class="share-buttons">
+      <button class="btn-primary" id="btn-download">⬇ <span data-i18n="download">Download image</span></button>
+      <button class="btn-ghost" id="btn-copy-text">📋 <span data-i18n="copyText">Copy share text</span></button>
+      <button class="btn-ghost" id="btn-share-app" style="display:none">📤 <span data-i18n="shareApp">Share via app</span></button>
+    </div>
+    <p class="share-tip" data-i18n="shareTip">Save the image, then post it to your story or send to a friend!</p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<canvas class="share-canvas" id="share-canvas" width="1080" height="1080"></canvas>
+
+<script>
+/* =========================================================
+   MBTI 人格测评小游戏 — 纯前端实现（多语言 + 音效 + Canvas 分享 + 名人）
+   ========================================================= */
+
+/* ---------- 1. 多语言 UI 文案 ---------- */
+const UI = {
+  en:{
+    badge:'2 minutes · 16 possible types',
+    title1:"What's Your", title2:'True Type?',
+    subtitle:"Answer 12 quick scenario questions and discover which of the 16 personality types fits you best. No emails. No sign-up. Just play.",
+    startBtn:'Start the Quest',
+    m_types:'Types', m_q:'Questions', m_time:'To Play',
+    hint:'Tip: tap an option or press',
+    youAre:'You are', aboutYou:'About you', strengths:'Your strengths',
+    famous:"You're in good company", traits:'Your traits',
+    ofPeople:'Of people', rarity:'Rarity rank',
+    shareImg:'Share my type', retry:'Play again',
+    copied:'Copied! Paste it anywhere',
+    downloaded:'Image saved · text copied to clipboard',
+    shareFail:'Screenshot this page to share',
+    ctaShare:"What's your type?",
+    resultLabel:'PERSONALITY QUEST RESULT',
+    shareTitle:'Share your result',
+    download:'Download image',
+    copyText:'Copy share text',
+    shareApp:'Share via app',
+    shareTip:'Save the image, then post it to your story or send to a friend!',
+  },
+  zh:{
+    badge:'2 分钟 · 16 种可能',
+    title1:'你的', title2:'真实人格是？',
+    subtitle:'回答 12 道情景题，看看 16 种人格里你最属于哪一种。不用邮箱、不用注册，直接开玩。',
+    startBtn:'开始测评',
+    m_types:'种类型', m_q:'道题', m_time:'即可完成',
+    hint:'提示：点选项，或按',
+    youAre:'你是', aboutYou:'关于你', strengths:'你的优势',
+    famous:'和你同类型的名人', traits:'你的维度',
+    ofPeople:'的人群', rarity:'稀有度',
+    shareImg:'分享我的结果', retry:'再玩一次',
+    copied:'已复制！去任意地方粘贴',
+    downloaded:'图片已保存 · 文案已复制到剪贴板',
+    shareFail:'直接截图本页就能分享',
+    ctaShare:'来测测你是哪一型？',
+    resultLabel:'人格测评结果',
+    shareTitle:'分享你的结果',
+    download:'下载图片',
+    copyText:'复制分享文案',
+    shareApp:'通过应用分享',
+    shareTip:'保存图片，发到朋友圈或发给好友吧！',
+  },
+  ja:{
+    badge:'2分・16タイプ',
+    title1:'あなたの', title2:'本当のタイプは？',
+    subtitle:'12のシチュエーション質問に答えて、16の性格タイプから自分に一番近いものを見つけよう。メールも登録も不要。',
+    startBtn:'診断を始める',
+    m_types:'タイプ', m_q:'問', m_time:'で完了',
+    hint:'ヒント：選択肢をタップ、または',
+    youAre:'あなたは', aboutYou:'あなたについて', strengths:'あなたの強み',
+    famous:'同じタイプの有名人', traits:'あなたの特性',
+    ofPeople:'の人', rarity:'レア度',
+    shareImg:'結果をシェア', retry:'もう一度',
+    copied:'コピーしました！どこにでも貼り付けられます',
+    downloaded:'画像を保存しました・テキストもコピー済み',
+    shareFail:'このページをスクリーンショットしてシェア',
+    ctaShare:'あなたのタイプは？',
+    resultLabel:'性格診断結果',
+    shareTitle:'結果をシェア',
+    download:'画像を保存',
+    copyText:'シェア文をコピー',
+    shareApp:'アプリでシェア',
+    shareTip:'画像を保存して、ストーリーズや友達に送ろう！',
+  }
+};
+
+/* ---------- 2. 群组名翻译 ---------- */
+const GROUPS = {
+  Analysts:{en:'Analysts',zh:'分析师',ja:'分析家'},
+  Diplomats:{en:'Diplomats',zh:'外交家',ja:'外交官'},
+  Sentinels:{en:'Sentinels',zh:'守护者',ja:'監視者'},
+  Explorers:{en:'Explorers',zh:'探险家',ja:'探検家'},
+};
+const GROUP_ICN = {Analysts:'🧠',Diplomats:'🌱',Sentinels:'🛡️',Explorers:'⚡'};
+
+/* ---------- 3. 稀有度排名翻译 ---------- */
+const RANKS = {
+  rarest1:{en:'#1 rarest',zh:'最稀有',ja:'レア度第1位'},
+  rarest2:{en:'#2 rarest',zh:'第2稀有',ja:'レア度第2位'},
+  rarest3:{en:'#3 rarest',zh:'第3稀有',ja:'レア度第3位'},
+  rarest4:{en:'#4 rarest',zh:'第4稀有',ja:'レア度第4位'},
+  rarest6:{en:'#6 rarest',zh:'第6稀有',ja:'レア度第6位'},
+  rarest7:{en:'#7 rarest',zh:'第7稀有',ja:'レア度第7位'},
+  rarest8:{en:'#8 rarest',zh:'第8稀有',ja:'レア度第8位'},
+  rarest9:{en:'#9 rarest',zh:'第9稀有',ja:'レア度第9位'},
+  rarest10:{en:'#10 rarest',zh:'第10稀有',ja:'レア度第10位'},
+  common1:{en:'#1 common',zh:'最常见',ja:'多い方第1位'},
+  common2:{en:'#2 common',zh:'第2常见',ja:'多い方第2位'},
+  common3:{en:'#3 common',zh:'第3常见',ja:'多い方第3位'},
+  common4:{en:'#4 common',zh:'第4常见',ja:'多い方第4位'},
+  common5:{en:'#5 common',zh:'第5常见',ja:'多い方第5位'},
+  common6:{en:'#6 common',zh:'第6常见',ja:'多い方第6位'},
+  common7:{en:'#7 common',zh:'第7常见',ja:'多い方第7位'},
+};
+
+/* ---------- 4. 优势词条翻译（key 为英文） ---------- */
+const STR_I18N = {
+  'Big-picture vision':{zh:'全局视野',ja:'全体像を見通す'},
+  'Ruthlessly logical':{zh:'极致理性',ja:'徹底的に論理的'},
+  'Independent thinker':{zh:'独立思考',ja:'独立した思考'},
+  'Original thinker':{zh:'原创思维',ja:'独創的な思考'},
+  'Loves deep problems':{zh:'爱钻难题',ja:'難問が好き'},
+  'Adaptable mind':{zh:'思维灵活',ja:'柔軟な頭脳'},
+  'Bold leader':{zh:'大胆的领袖',ja:'大胆なリーダー'},
+  'Strategic':{zh:'战略型',ja:'戦略的'},
+  'Efficient':{zh:'高效',ja:'効率的'},
+  'Quick thinker':{zh:'反应敏捷',ja:'思考が速い'},
+  'Creative':{zh:'创造力强',ja:'創造的'},
+  'Energetic debater':{zh:'辩论有劲',ja:'議論が弾む'},
+  'Insightful':{zh:'洞察力强',ja:'洞察力がある'},
+  'Principled':{zh:'有原则',ja:'信念がある'},
+  'Inspiring':{zh:'有感染力',ja:'人を惹きつける'},
+  'Empathetic':{zh:'共情力强',ja:'共感力が高い'},
+  'Value-driven':{zh:'由价值观驱动',ja:'価値観駆動'},
+  'Charismatic leader':{zh:'魅力型领袖',ja:'カリスマ的リーダー'},
+  'Enthusiastic':{zh:'热情洋溢',ja:'熱意がある'},
+  'Sociable':{zh:'爱社交',ja:'社交的'},
+  'Reliable':{zh:'靠谱',ja:'頼りになる'},
+  'Detail-oriented':{zh:'注重细节',ja:'細部にこだわる'},
+  'Honest':{zh:'诚实',ja:'誠実'},
+  'Caring':{zh:'体贴',ja:'思いやりがある'},
+  'Loyal':{zh:'忠诚',ja:'忠実'},
+  'Meticulous':{zh:'一丝不苟',ja:'几帳面'},
+  'Decisive':{zh:'果断',ja:'決断力がある'},
+  'Organized':{zh:'有条理',ja:'組織的'},
+  'Strong-willed':{zh:'意志坚强',ja:'意志が強い'},
+  'Warm':{zh:'温暖',ja:'温かい'},
+  'Popular':{zh:'受欢迎',ja:'人気者'},
+  'Dutiful':{zh:'尽责',ja:'責任感が強い'},
+  'Practical':{zh:'务实',ja:'実用的'},
+  'Brave':{zh:'勇敢',ja:'勇敢'},
+  'Spontaneous':{zh:'随性',ja:'即興的'},
+  'Artistic':{zh:'艺术感强',ja:'芸術的'},
+  'Sensitive':{zh:'敏感细腻',ja:'感受性が豊か'},
+  'Free spirit':{zh:'自由灵魂',ja:'自由人'},
+  'Bold':{zh:'大胆',ja:'大胆'},
+  'Perceptive':{zh:'洞察敏锐',ja:'察しが良い'},
+  'Energetic':{zh:'精力旺盛',ja:'エネルギッシュ'},
+  'Fun':{zh:'有趣',ja:'面白い'},
+};
+const strengthText = (s, lang) => lang==='en' ? s : (STR_I18N[s]?.[lang] || s);
+
+/* ---------- 5. 维度标签 ---------- */
+const AXIS_LABELS = {
+  E:{name:{en:'Extraverted',zh:'外向',ja:'外向的'},color:'#FF6B6B'},
+  I:{name:{en:'Introverted',zh:'内向',ja:'内向的'},color:'#3DBDB6'},
+  S:{name:{en:'Observant',zh:'实感',ja:'観察的'},color:'#4CAF50'},
+  N:{name:{en:'Intuitive',zh:'直觉',ja:'直感的'},color:'#8B5CF6'},
+  T:{name:{en:'Thinking',zh:'思考',ja:'思考的'},color:'#2E9BFF'},
+  F:{name:{en:'Feeling',zh:'情感',ja:'感情的'},color:'#EC4899'},
+  J:{name:{en:'Judging',zh:'判断',ja:'判断的'},color:'#5B5FEF'},
+  P:{name:{en:'Perceiving',zh:'知觉',ja:'知覚的'},color:'#F59E0B'},
+};
+
+/* ---------- 6. 12 道情景题（三语） ---------- */
+const QUESTIONS = [
+  { axis:'EI', text:{en:"Friday night rolls around with no plans yet. Your ideal pick is…",
+    zh:'周五晚上没有任何安排，你的理想选择是…',
+    ja:'金曜の夜、予定がありません。あなたの理想は…'},
+    a:{k:'E',t:{en:'Rally a group chat and get people together',zh:'拉个群把朋友们都喊出来聚聚',ja:'グループチャットでみんなを集める'}},
+    b:{k:'I',t:{en:'A cozy night in with a show, book, or just you',zh:'窝在家看剧、看书或享受独处',ja:'家でドラマや本を楽しむ'}}},
+  { axis:'EI', text:{en:"You walk into a party where you only know two people. You…",
+    zh:'走进一个只认识两个人的派对，你会…',
+    ja:'知り合いが2人しかいないパーティー。あなたは…'},
+    a:{k:'E',t:{en:'Mingle and meet as many new faces as possible',zh:'主动去认识尽量多的新朋友',ja:'できるだけ新しい人と知り合う'}},
+    b:{k:'I',t:{en:'Stick close to the two you already know',zh:'紧跟着你认识的那两个人',ja:'知っている2人のそばにいる'}}},
+  { axis:'EI', text:{en:"After a full day packed with meetings and socializing, you feel…",
+    zh:'开了一整天会、社交了一整天之后，你会觉得…',
+    ja:'会議や人付き合いで丸1日過ごした後、あなたは…'},
+    a:{k:'E',t:{en:'Wired, energized, ready to keep going',zh:'兴奋、充满能量、还能继续',ja:'元いっぱい、まだいける'}},
+    b:{k:'I',t:{en:'Drained — you need quiet time to recharge',zh:'精疲力尽，需要安静独处充电',ja:'疲れた — 静かな時間が必要'}}},
+
+  { axis:'SN', text:{en:"You are more drawn to a book or movie that…",
+    zh:'你更想看这样的书或电影…',
+    ja:'惹かれる本や映画は…'},
+    a:{k:'S',t:{en:'Depicts realistic events you could imagine happening',zh:'情节真实，仿佛就发生在身边',ja:'現実に起きそうなどこにでもある物語'}},
+    b:{k:'N',t:{en:'Explores wild, imaginative worlds and bold ideas',zh:'充满天马行空的想象和大胆设定',ja:'荒唐無稽な世界観と大胆なアイデア'}}},
+  { axis:'SN', text:{en:"When tackling something brand new, you prefer to…",
+    zh:'学全新的事物时，你更喜欢…',
+    ja:'初めてのことに取り組む時…'},
+    a:{k:'S',t:{en:'Follow clear, step-by-step instructions',zh:'跟着清晰、一步一步的说明走',ja:'手順通りに進める'}},
+    b:{k:'N',t:{en:'Grasp the big picture first, fill in details later',zh:'先抓住整体框架，细节之后再填',ja:'全体像をつかんでから詳細を詰める'}}},
+  { axis:'SN', text:{en:"The people you admire most tend to be…",
+    zh:'你最欣赏的人通常是…',
+    ja:'憧れる人は…'},
+    a:{k:'S',t:{en:'Grounded, practical, and down-to-earth',zh:'脚踏实地、务实、接地气',ja:'地に足がついた現実的な人'}},
+    b:{k:'N',t:{en:'Visionary, creative, and a little unconventional',zh:'有远见、有创意、有点不按常理',ja:'先見の明があり創造的で型破り'}}},
+
+  { axis:'TF', text:{en:"A close friend comes to you clearly upset. Your first instinct is to…",
+    zh:'好朋友很难过地找你，你的第一反应是…',
+    ja:'親友が落ち込んで相談に来た。まず…'},
+    a:{k:'T',t:{en:'Help them figure out how to fix the problem',zh:'帮 ta 分析问题、想办法解决',ja:'問題の解決策を一緒に考える'}},
+    b:{k:'F',t:{en:'Comfort them and make sure they feel heard',zh:'先安慰 ta，让 ta 觉得被理解',ja:'まず慰めて気持ちに寄り添う'}}},
+  { axis:'TF', text:{en:"When you are making a tough decision, you weigh most heavily…",
+    zh:'做艰难决定时，你最看重…',
+    ja:'難しい決断を下す時、最も重視するのは…'},
+    a:{k:'T',t:{en:'Logic and the objective outcomes',zh:'逻辑和客观的结果',ja:'論理と客観的な結果'}},
+    b:{k:'F',t:{en:'How the decision will affect everyone involved',zh:'这个决定会怎么影响每个人',ja:'関わる全員にどう影響するか'}}},
+  { axis:'TF', text:{en:"Which line feels more true for you?",
+    zh:'哪句更接近你？',
+    ja:'どちらが自分に近い？'},
+    a:{k:'T',t:{en:'Honesty matters more than sparing feelings',zh:'说实话比照顾情绪更重要',ja:'正直さは気配りより大事'}},
+    b:{k:'F',t:{en:'Kindness matters more than cold hard truth',zh:'善良比冰冷的事实更重要',ja:'優しさは冷たい事実より大事'}}},
+
+  { axis:'JP', text:{en:"There is a big trip coming up next month. You…",
+    zh:'下个月有趟大旅行，你会…',
+    ja:'来月、大きな旅行が。あなたは…'},
+    a:{k:'J',t:{en:'Already have the itinerary mostly booked',zh:'行程早就订得差不多了',ja:'すでにスケジュールをほぼ予約済み'}},
+    b:{k:'P',t:{en:'Will figure things out once you land',zh:'到了当地再说，随机应变',ja:'現地に着いてから考える'}}},
+  { axis:'JP', text:{en:"Your workspace usually looks…",
+    zh:'你的工作台通常是…',
+    ja:'あなたの作業スペースは…'},
+    a:{k:'J',t:{en:'Neat and organized — everything in its place',zh:'整整齐齐，每样东西都在该在的位置',ja:'整然としていてすべて所定の位置に'}},
+    b:{k:'P',t:{en:'A creative mess, but you know where things are',zh:'乱但很有创意，反正你知道东西在哪',ja:'創造的な乱雑でも場所は分かっている'}}},
+  { axis:'JP', text:{en:"When it comes to deadlines, you tend to…",
+    zh:'面对截止日期，你倾向于…',
+    ja:'締め切りについて、あなたは…'},
+    a:{k:'J',t:{en:'Start early and finish ahead of schedule',zh:'尽早开始，提前完成',ja:'早く着手し予定より早く終わらせる'}},
+    b:{k:'P',t:{en:'Do your best work right before the bell',zh:'到最后一刻才爆发小宇宙',ja:'直前に最高のパフォーマンスを出す'}}},
+];
+
+/* ---------- 7. 16 型人格数据 ---------- */
+const TYPES = {
+  INTJ:{color:'#8B5CF6',rarity:'2.1%',rank:'rarest3',
+    nick:{en:'The Architect',zh:'建筑师',ja:'建築家'},group:'Analysts',
+    desc:{en:'Strategic and imaginative, you spot patterns others miss and quietly turn bold visions into real, working plans. Independent and relentless, you would rather be right than popular.',
+      zh:'富有战略眼光和想象力，你能看穿别人忽略的规律，悄悄把大胆的构想变成可行的计划。独立而坚韧，比起受欢迎你更愿意做对的事。',
+      ja:'戦略的で想像力に富み、他人が見逃すパターンを見抜き、大胆なビジョンを現実の計画に変えます。独立心が強く、人気より正しさを選びます。'},
+    strengths:['Big-picture vision','Ruthlessly logical','Independent thinker'],
+    famous:[
+      {name:'Elon Musk',role:{en:'Entrepreneur · Tesla & SpaceX',zh:'企业家 · 特斯拉 / SpaceX',ja:'起業家・テスラ/スペースX'}},
+      {name:'Friedrich Nietzsche',role:{en:'Philosopher',zh:'哲学家',ja:'哲学者'}},
+      {name:'Lisa Su',role:{en:'AMD CEO',zh:'AMD 公司 CEO',ja:'AMD CEO'}},
+    ]},
+  INTP:{color:'#8B5CF6',rarity:'3.3%',rank:'rarest7',
+    nick:{en:'The Logician',zh:'逻辑学家',ja:'論理学者'},group:'Analysts',
+    desc:{en:"Endlessly curious, you love taking ideas apart to see how they really work. You would rather spend a night lost in a fascinating problem than at any party.",
+      zh:'好奇心无穷，你喜欢把想法拆开看它们到底怎么运作。比起任何派对，你更愿意为一个迷人的问题熬一整夜。',
+      ja:'果てしない好奇心を持ち、アイデアを分解して本当の仕組みを理解するのが好きです。どんなパーティーよりも、夢中になれる問題に夜を費やしたいタイプです。'},
+    strengths:['Original thinker','Loves deep problems','Adaptable mind'],
+    famous:[
+      {name:'Albert Einstein',role:{en:'Physicist',zh:'物理学家',ja:'物理学者'}},
+      {name:'Bill Gates',role:{en:'Microsoft co-founder',zh:'微软联合创始人',ja:'マイクロソフト共同創業者'}},
+      {name:'Marie Curie',role:{en:'Nobel-winning scientist',zh:'诺贝尔奖科学家',ja:'ノーベル賞科学者'}},
+    ]},
+  ENTJ:{color:'#8B5CF6',rarity:'1.9%',rank:'rarest2',
+    nick:{en:'The Commander',zh:'指挥官',ja:'指揮官'},group:'Analysts',
+    desc:{en:'A natural-born leader who turns ambitious goals into reality with pure willpower. Where others see chaos, you see a system waiting to be optimized.',
+      zh:'天生的领袖，凭纯粹的意志力把雄心壮志变成现实。别人眼里的混乱，在你看来只是等待优化的系统。',
+      ja:'生まれながらのリーダーで、純粋な意志の力で野心的な目標を現実にします。他人が混乱を見る所で、あなたは最適化を待つシステムを見ます。'},
+    strengths:['Bold leader','Strategic','Efficient'],
+    famous:[
+      {name:'Steve Jobs',role:{en:'Apple co-founder',zh:'苹果公司联合创始人',ja:'アップル共同創業者'}},
+      {name:'Margaret Thatcher',role:{en:'Former UK Prime Minister',zh:'英国前首相',ja:'元英国首相'}},
+      {name:'Gordon Ramsay',role:{en:'Chef & TV personality',zh:'厨师 / 电视名人',ja:'シェフ・タレント'}},
+    ]},
+  ENTP:{color:'#8B5CF6',rarity:'3.2%',rank:'rarest6',
+    nick:{en:'The Debater',zh:'辩论家',ja:'討論者'},group:'Analysts',
+    desc:{en:"Quick-witted and a little contrarian, you can argue any side of an idea and enjoy every minute. You live for the thrill of a new perspective.",
+      zh:'反应快、有点爱唱反调，你能为一个想法的任何一方辩护，而且乐在其中。让你兴奋的是新视角带来的快感。',
+      ja:'機知に富んで少し皮肉屋で、どんなアイデアのどちら側でも論じ楽しめます。新しい視点のスリルを生きがいにしています。'},
+    strengths:['Quick thinker','Creative','Energetic debater'],
+    famous:[
+      {name:'Leonardo da Vinci',role:{en:'Polymath & artist',zh:'博学者 / 艺术家',ja:'博学者・芸術家'}},
+      {name:'Mark Twain',role:{en:'Author',zh:'作家',ja:'作家'}},
+      {name:'Sacha Baron Cohen',role:{en:'Actor & comedian',zh:'演员 / 喜剧人',ja:'俳優・コメディアン'}},
+    ]},
+
+  INFJ:{color:'#10B981',rarity:'1.5%',rank:'rarest1',
+    nick:{en:'The Advocate',zh:'提倡者',ja:'提唱者'},group:'Diplomats',
+    desc:{en:'Quietly idealistic and deeply principled, you fight for a better world with quiet fire. You read people like books and care more than you let on.',
+      zh:'安静的理想主义者，原则性极强，你用不张扬的热情为一个更好的世界而战。你像读书一样读懂别人，比表面上更在乎。',
+      ja:'静かな理想主義者で強い信念を持ち、静かな炎でより良い世界のために戦います。人を本のように読み取り、表に出す以上に思いやりがあります。'},
+    strengths:['Insightful','Principled','Inspiring'],
+    famous:[
+      {name:'Martin Luther King Jr.',role:{en:'Civil rights leader',zh:'民权运动领袖',ja:'公民権運動の指導者'}},
+      {name:'Alanis Morissette',role:{en:'Singer-songwriter',zh:'创作歌手',ja:'シンガーソングライター'}},
+      {name:'Plato',role:{en:'Philosopher',zh:'哲学家',ja:'哲学者'}},
+    ]},
+  INFP:{color:'#10B981',rarity:'4.4%',rank:'rarest9',
+    nick:{en:'The Mediator',zh:'调停者',ja:'仲介者'},group:'Diplomats',
+    desc:{en:'A poetic soul guided by values, always searching for the good in people and the meaning behind things. You feel everything in high definition.',
+      zh:'诗意地活在价值观里的灵魂，总在寻找别人身上的好和事物背后的意义。你对一切感受都是高清的。',
+      ja:'価値観に導かれる詩的な魂で、人の良さや物事の意味を常に探しています。すべてを高解像度で感じ取ります。'},
+    strengths:['Empathetic','Creative','Value-driven'],
+    famous:[
+      {name:'William Shakespeare',role:{en:'Playwright',zh:'剧作家',ja:'劇作家'}},
+      {name:'J.R.R. Tolkien',role:{en:'Author of The Lord of the Rings',zh:'《魔戒》作者',ja:'『ロード・オブ・ザ・リング』著者'}},
+      {name:'Princess Diana',role:{en:'Princess of Wales',zh:'威尔士王妃',ja:'ウェールズ皇太子妃'}},
+    ]},
+  ENFJ:{color:'#10B981',rarity:'2.5%',rank:'rarest4',
+    nick:{en:'The Protagonist',zh:'主人公',ja:'主人公'},group:'Diplomats',
+    desc:{en:'Warm, magnetic, and unstoppable when you believe in something. You rally others toward a shared dream and somehow make it feel possible.',
+      zh:'温暖、有磁性，一旦认定一件事就势不可挡。你能把别人凝聚到一个共同的梦想周围，还总能让人觉得它真的能实现。',
+      ja:'温かく魅力があり、信じたことには止まりません。他者を共通の夢の下に集め、なぜかそれを可能だと感じさせます。'},
+    strengths:['Charismatic leader','Empathetic','Inspiring'],
+    famous:[
+      {name:'Barack Obama',role:{en:'Former US President',zh:'美国前总统',ja:'元米国大統領'}},
+      {name:'Oprah Winfrey',role:{en:'Talk show host',zh:'脱口秀主持人',ja:'トークショー司会者'}},
+      {name:'Maya Angelou',role:{en:'Poet & activist',zh:'诗人 / 社会活动家',ja:'詩人・活動家'}},
+    ]},
+  ENFP:{color:'#10B981',rarity:'8.1%',rank:'common7',
+    nick:{en:'The Campaigner',zh:'竞选者',ja:'運動家'},group:'Diplomats',
+    desc:{en:'Bursting with enthusiasm and curiosity, you turn ordinary moments into adventures. People are drawn to your spark and your appetite for life.',
+      zh:'热情和好奇心爆棚，你能把寻常时刻变成冒险。人们被你的火花和对生活的胃口所吸引。',
+      ja:'熱意と好奇心にあふれ、日常の一瞬を冒険に変えます。人はあなたの火花と生きる意欲に惹きつけられます。'},
+    strengths:['Enthusiastic','Creative','Sociable'],
+    famous:[
+      {name:'Robin Williams',role:{en:'Actor & comedian',zh:'演员 / 喜剧人',ja:'俳優・コメディアン'}},
+      {name:'Walt Disney',role:{en:'Animator & producer',zh:'动画师 / 制片人',ja:'アニメーター・プロデューサー'}},
+      {name:'Ariana Grande',role:{en:'Singer & actress',zh:'歌手 / 演员',ja:'歌手・女優'}},
+    ]},
+
+  ISTJ:{color:'#2E9BFF',rarity:'11.6%',rank:'common3',
+    nick:{en:'The Logistician',zh:'物流师',ja:'管理者'},group:'Sentinels',
+    desc:{en:"Practical, reliable, and grounded — you keep things running like clockwork. Your word is your bond, and you take your responsibilities seriously.",
+      zh:'务实、可靠、脚踏实地——你让一切像钟表一样运转。你一诺千金，对自己的责任极为认真。',
+      ja:'現実的で信頼でき、地に足がついています — すべてを時計のように動かします。約束は固く、責任を非常に重んじます。'},
+    strengths:['Reliable','Detail-oriented','Honest'],
+    famous:[
+      {name:'George Washington',role:{en:'1st US President',zh:'美国首任总统',ja:'初代米国大統領'}},
+      {name:'Queen Elizabeth II',role:{en:'Former UK monarch',zh:'英国女王',ja:'英国女王'}},
+      {name:'Angela Merkel',role:{en:'Former German Chancellor',zh:'德国前总理',ja:'元ドイツ連邦宰相'}},
+    ]},
+  ISFJ:{color:'#2E9BFF',rarity:'13.8%',rank:'common1',
+    nick:{en:'The Defender',zh:'守护者',ja:'擁護者'},group:'Sentinels',
+    desc:{en:'Warm, devoted, and quietly fierce, you protect the people you love without needing applause. You remember the little things everyone else forgets.',
+      zh:'温暖、忠诚、安静而坚定，你保护你在乎的人，不需要掌声。别人忘掉的小事你都记得。',
+      ja:'温かく忠実で静かに激しく、愛する人を拍手なしに守ります。他の全員が忘れる小さなことを覚えています。'},
+    strengths:['Caring','Loyal','Meticulous'],
+    famous:[
+      {name:'Rosa Parks',role:{en:'Civil rights activist',zh:'民权活动家',ja:'公民権運動家'}},
+      {name:'Kate Middleton',role:{en:'Princess of Wales',zh:'威尔士王妃',ja:'ウェールズ公妃'}},
+      {name:"Mr. Rogers",role:{en:'Beloved TV host',zh:'儿童电视节目主持人',ja:'子供番組司会者'}},
+    ]},
+  ESTJ:{color:'#2E9BFF',rarity:'8.7%',rank:'common4',
+    nick:{en:'The Executive',zh:'总经理',ja:'幹部'},group:'Sentinels',
+    desc:{en:'Organized, decisive, and direct, you bring order to chaos and get things done. You value tradition, honesty, and hard work.',
+      zh:'有条理、果断、直接，你能在混乱中建立秩序、把事情做成。你看重传统、诚实和勤奋。',
+      ja:'組織的で決断力があり直接的で、混乱に秩序をもたらし物事を成し遂げます。伝統、誠実さ、勤労を重んじます。'},
+    strengths:['Decisive','Organized','Strong-willed'],
+    famous:[
+      {name:'Franklin D. Roosevelt',role:{en:'32nd US President',zh:'美国第32任总统',ja:'第32代米国大統領'}},
+      {name:'Michelle Obama',role:{en:'Former US First Lady',zh:'美国前第一夫人',ja:'元米国大統領夫人'}},
+      {name:'Henry Ford',role:{en:'Founder of Ford Motor',zh:'福特汽车创始人',ja:'フォード自動車創業者'}},
+    ]},
+  ESFJ:{color:'#2E9BFF',rarity:'12.3%',rank:'common2',
+    nick:{en:'The Consul',zh:'执政官',ja:'領事官'},group:'Sentinels',
+    desc:{en:'Caring, social, and dependable — you are the glue holding your community together. You notice when someone needs a hand before they say a word.',
+      zh:'温暖、爱社交、靠得住——你是把社群粘在一起的那个人。别人还没开口，你就注意到 ta 需要帮助。',
+      ja:'思いやりがあり社交的で信頼できる — コミュニティをつなぎ合わせる接着剤です。相手が言葉にする前に手が必要なことに気づきます。'},
+    strengths:['Warm','Popular','Dutiful'],
+    famous:[
+      {name:'Taylor Swift',role:{en:'Singer-songwriter',zh:'创作歌手',ja:'シンガーソングライター'}},
+      {name:'Hugh Jackman',role:{en:'Actor',zh:'演员',ja:'俳優'}},
+      {name:'Beyoncé',role:{en:'Singer & actress',zh:'歌手 / 演员',ja:'歌手・女優'}},
+    ]},
+
+  ISTP:{color:'#F59E0B',rarity:'5.4%',rank:'rarest8',
+    nick:{en:'The Virtuoso',zh:'鉴赏家',ja:'巨匠'},group:'Explorers',
+    desc:{en:"Cool under pressure and great with your hands, you learn by taking things apart — machines, ideas, systems. You speak through action, not words.",
+      zh:'压力下冷静、动手能力强，你靠拆解来学习——机器、想法、系统。你用行动说话，而不是嘴。',
+      ja:'圧力下で冷静で手先が器用で、分解することで学びます — 機械、アイデア、システム。言葉ではなく行動で語ります。'},
+    strengths:['Practical','Brave','Spontaneous'],
+    famous:[
+      {name:'Clint Eastwood',role:{en:'Actor & director',zh:'演员 / 导演',ja:'俳優・監督'}},
+      {name:'Bruce Lee',role:{en:'Martial artist & actor',zh:'武术家 / 演员',ja:'武術家・俳優'}},
+      {name:'Michael Jordan',role:{en:'Basketball legend',zh:'篮球传奇',ja:'バスケットボールの伝説'}},
+    ]},
+  ISFP:{color:'#F59E0B',rarity:'8.8%',rank:'common5',
+    nick:{en:'The Adventurer',zh:'探险家',ja:'冒険家'},group:'Explorers',
+    desc:{en:'Gentle, creative, and quietly rebellious, you express yourself through what you make and how you live. You follow your own rhythm.',
+      zh:'温柔、有创造力、有点小叛逆，你用作品和生活方式来表达自己。你跟着自己的节奏走。',
+      ja:'穏やかで創造的で静かに反骨精神があり、作るものと生き方で自己表現します。自分のリズムに従います。'},
+    strengths:['Artistic','Sensitive','Free spirit'],
+    famous:[
+      {name:'Frida Kahlo',role:{en:'Painter',zh:'画家',ja:'画家'}},
+      {name:'Michael Jackson',role:{en:'Pop icon',zh:'流行天王',ja:'ポップの王様'}},
+      {name:'Bob Dylan',role:{en:'Singer-songwriter, Nobel laureate',zh:'创作歌手 / 诺贝尔奖得主',ja:'シンガーソングライター・ノーベル賞受賞'}},
+    ]},
+  ESTP:{color:'#F59E0B',rarity:'4.3%',rank:'rarest10',
+    nick:{en:'The Entrepreneur',zh:'企业家',ja:'起業家'},group:'Explorers',
+    desc:{en:'Bold, sharp, and allergic to boredom, you thrive on action and split-second decisions. You would rather try and fail than plan forever.',
+      zh:'胆大、机敏、最怕无聊，你在行动和瞬间决策里如鱼得水。你宁可试一试失败，也不愿永远在计划。',
+      ja:'大胆で鋭く、退屈にアレルギーがあり、行動と瞬時の決断で生き生きとします。永遠に計画するより試して失敗する方を選びます。'},
+    strengths:['Bold','Perceptive','Energetic'],
+    famous:[
+      {name:'Madonna',role:{en:'Queen of Pop',zh:'流行女皇',ja:'ポップの女王'}},
+      {name:'Ernest Hemingway',role:{en:'Novelist',zh:'小说家',ja:'小説家'}},
+      {name:'Miles Davis',role:{en:'Jazz legend',zh:'爵士传奇',ja:'ジャズの伝説'}},
+    ]},
+  ESFP:{color:'#F59E0B',rarity:'8.5%',rank:'common6',
+    nick:{en:'The Entertainer',zh:'表演者',ja:'エンターテイナー'},group:'Explorers',
+    desc:{en:"Spontaneous, warm, and impossibly fun — you turn every room into a party and every day into a story. You live in bright, vivid color.",
+      zh:'随性、温暖、好玩到不行——你把每个房间都变成派对，把每一天都过成故事。你的生活是高饱和度的彩色。',
+      ja:'自発的で温かく、信じられないほど楽しい — すべての部屋をパーティーに、毎日を物語に変えます。鮮やかな色彩の中で生きています。'},
+    strengths:['Fun','Sociable','Spontaneous'],
+    famous:[
+      {name:'Marilyn Monroe',role:{en:'Actress & icon',zh:'演员 / 文化符号',ja:'女優・アイコン'}},
+      {name:'Jamie Oliver',role:{en:'Chef & TV host',zh:'厨师 / 电视主持人',ja:'シェフ・司会者'}},
+      {name:'Adele',role:{en:'Singer-songwriter',zh:'创作歌手',ja:'シンガーソングライター'}},
+    ]},
+};
+
+/* ---------- 8. 应用状态 ---------- */
+const state = {
+  lang: detectLang(),
+  qIndex: 0,
+  scores: {E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0},
+  lastType: null,
+  shareDataUrl: null,
+  shareBlob: null,
+};
+
+function detectLang(){
+  const l = (navigator.language || 'en').toLowerCase();
+  if (l.startsWith('zh')) return 'zh';
+  if (l.startsWith('ja')) return 'ja';
+  return 'en';
+}
+
+/* ---------- 9. Web Audio 流行音乐引擎 ----------
+   结构：Am - F - C - G 经典四和弦流行进行
+   分层：和弦 pad + 贝斯 + 五声音阶旋律 + 软 kick + hi-hat
+   调度：lookahead scheduler（25ms 轮询，提前 150ms 排音符）
+*/
+const Sound = {
+  ctx: null, enabled: true, timerId: null,
+  musicGain: null, uiGain: null, warmth: null,
+  nextTime: 0, step: 0, bpm: 90,
+
+  init(){
+    if (this.ctx) return;
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AC();
+      // 音乐通路：warmth 低通 → musicGain → 输出
+      this.musicGain = this.ctx.createGain();
+      this.musicGain.gain.value = 0;
+      this.musicGain.connect(this.ctx.destination);
+      this.warmth = this.ctx.createBiquadFilter();
+      this.warmth.type = 'lowpass';
+      this.warmth.frequency.value = 3500;
+      this.warmth.connect(this.musicGain);
+      // UI 音效通路：uiGain → 输出（始终开启）
+      this.uiGain = this.ctx.createGain();
+      this.uiGain.gain.value = 0.85;
+      this.uiGain.connect(this.ctx.destination);
+    } catch(e){ this.ctx = null; }
+  },
+
+  // 通用音符（音乐通路，含 ADSR 包络）
+  tone(freq, time, dur, opts={}){
+    if (!this.ctx) return;
+    const {type='sine', vol=0.1, attack=0.02, release=0.15, filter=null, detune=0} = opts;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    osc.detune.value = detune;
+    const a = Math.max(0.005, attack);
+    gain.gain.setValueAtTime(0.0001, time);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.001, vol), time + a);
+    gain.gain.exponentialRampToValueAtTime(Math.max(0.001, vol*0.5), time + a + dur*0.4);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + dur + release);
+    let out = osc;
+    if (filter){
+      const f = this.ctx.createBiquadFilter();
+      f.type = 'lowpass'; f.frequency.value = filter;
+      osc.connect(f); out = f;
+    }
+    out.connect(gain).connect(this.warmth);
+    osc.start(time);
+    osc.stop(time + dur + release + 0.05);
+  },
+
+  // UI 音效（独立通路，不受 musicGain 渐变影响）
+  uiTone(freq, time, dur, opts={}){
+    if (!this.ctx) return;
+    const {type='sine', vol=0.1, attack=0.005, release=0.2} = opts;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = type; osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, time);
+    gain.gain.exponentialRampToValueAtTime(vol, time + attack);
+    gain.gain.exponentialRampToValueAtTime(0.0001, time + dur + release);
+    osc.connect(gain).connect(this.uiGain);
+    osc.start(time); osc.stop(time + dur + release + 0.05);
+  },
+
+  // 软 kick 鼓
+  kick(time, vol=0.14){
+    const ctx = this.ctx; if (!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.setValueAtTime(130, time);
+    osc.frequency.exponentialRampToValueAtTime(42, time + 0.12);
+    gain.gain.setValueAtTime(vol, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.2);
+    osc.connect(gain).connect(this.warmth);
+    osc.start(time); osc.stop(time + 0.22);
+  },
+
+  // hi-hat（高频噪声脉冲）
+  hat(time, vol=0.03){
+    const ctx = this.ctx; if (!ctx) return;
+    const size = Math.floor(ctx.sampleRate * 0.05);
+    const buffer = ctx.createBuffer(1, size, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i=0; i<size; i++) data[i] = Math.random()*2 - 1;
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass'; filter.frequency.value = 7500;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(vol, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
+    noise.connect(filter).connect(gain).connect(this.warmth);
+    noise.start(time); noise.stop(time + 0.06);
+  },
+
+  // 调度一个拍子上的所有音符
+  scheduleStep(step, time){
+    const beat = step % 4;           // 0-3
+    const bar  = Math.floor(step/4); // 0-3
+    const bdur = 60 / this.bpm;      // 一拍时长
+
+    // Am - F - C - G 四和弦进行
+    const prog = [
+      {chord:[220.00, 261.63, 329.63], bass:110.00, mel:[659.25, 0, 523.25, 0]},        // Am
+      {chord:[174.61, 220.00, 261.63], bass: 87.31, mel:[698.46, 0, 523.25, 0]},        // F
+      {chord:[261.63, 329.63, 392.00], bass:130.81, mel:[783.99, 659.25, 523.25, 0]},   // C
+      {chord:[196.00, 246.94, 293.66], bass: 98.00, mel:[587.33, 0, 493.88, 0]},        // G
+    ];
+    const c = prog[bar];
+
+    // 和弦 pad：每小节第一拍进入，持续近一小节
+    if (beat === 0){
+      c.chord.forEach(f=>{
+        this.tone(f, time, bdur*3.5, {type:'sine', vol:0.045, attack:0.35, release:0.4, filter:1600});
+        // 轻微失谐叠加一层增加温度
+        this.tone(f, time, bdur*3.5, {type:'sine', vol:0.02, attack:0.35, release:0.4, filter:1600, detune:7});
+      });
+    }
+    // 贝斯：第 0、2 拍
+    if (beat === 0 || beat === 2){
+      this.tone(c.bass, time, bdur*1.4, {type:'triangle', vol:0.16, attack:0.01, release:0.25, filter:700});
+    }
+    // 旋律：按五声音阶
+    const m = c.mel[beat];
+    if (m > 0){
+      this.tone(m, time, bdur*0.75, {type:'sine', vol:0.07, attack:0.008, release:0.3, filter:4500});
+    }
+    // 鼓点
+    if (beat === 0 || beat === 2) this.kick(time, 0.12);
+    this.hat(time, beat%2===0 ? 0.018 : 0.032);
+  },
+
+  // lookahead 调度器
+  scheduler(){
+    if (!this.ctx || !this.enabled) return;
+    const lookahead = 0.15;
+    const bdur = 60 / this.bpm;
+    while (this.nextTime < this.ctx.currentTime + lookahead){
+      this.scheduleStep(this.step, this.nextTime);
+      this.nextTime += bdur;
+      this.step = (this.step + 1) % 16;
+    }
+  },
+
+  start(){
+    this.init();
+    if (!this.ctx || this.timerId || !this.enabled) return;
+    if (this.ctx.state === 'suspended') this.ctx.resume();
+    const now = this.ctx.currentTime;
+    this.musicGain.gain.cancelScheduledValues(now);
+    this.musicGain.gain.setValueAtTime(0.0001, now);
+    this.musicGain.gain.linearRampToValueAtTime(0.85, now + 1.8);
+    this.nextTime = now + 0.1;
+    this.step = 0;
+    this.timerId = setInterval(()=> this.scheduler(), 25);
+  },
+
+  stop(){
+    if (this.timerId){ clearInterval(this.timerId); this.timerId = null; }
+    if (this.musicGain && this.ctx){
+      const now = this.ctx.currentTime;
+      this.musicGain.gain.cancelScheduledValues(now);
+      this.musicGain.gain.setValueAtTime(this.musicGain.gain.value, now);
+      this.musicGain.gain.linearRampToValueAtTime(0.0001, now + 0.5);
+    }
+  },
+
+  toggle(){
+    this.enabled = !this.enabled;
+    if (this.enabled) this.start(); else this.stop();
+    return this.enabled;
+  },
+
+  // UI 音效
+  select(){
+    if (!this.ctx || !this.enabled) return;
+    this.uiTone(880, this.ctx.currentTime, 0.1, {type:'sine', vol:0.12, release:0.15});
+  },
+  result(){
+    if (!this.ctx || !this.enabled) return;
+    [523.25, 659.25, 783.99, 1046.50].forEach((f,i)=>{
+      this.uiTone(f, this.ctx.currentTime + i*0.12, 0.22, {type:'sine', vol:0.11, release:0.3});
+    });
+  },
+};
+
+/* ---------- 10. 屏幕切换 ---------- */
+const screens = {
+  start: document.getElementById('screen-start'),
+  quiz:  document.getElementById('screen-quiz'),
+  result:document.getElementById('screen-result'),
+};
+function showScreen(name){
+  Object.values(screens).forEach(s=>s.classList.remove('active'));
+  screens[name].classList.add('active');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+/* ---------- 11. 多语言渲染 ---------- */
+function applyI18n(){
+  const u = UI[state.lang];
+  document.documentElement.lang = state.lang;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k = el.dataset.i18n;
+    if (u[k] !== undefined) el.textContent = u[k];
+  });
+  // 更新语言按钮高亮
+  document.querySelectorAll('#lang-switcher button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.lang === state.lang);
+  });
+}
+
+function setLang(lang){
+  state.lang = lang;
+  applyI18n();
+  // 重新渲染当前可见屏幕
+  if (screens.quiz.classList.contains('active')) renderQuestion();
+  if (screens.result.classList.contains('active')) renderResult();
+}
+
+/* ---------- 12. 渲染问题 ---------- */
+function renderQuestion(){
+  const q = QUESTIONS[state.qIndex];
+  const lang = state.lang;
+  const total = QUESTIONS.length;
+  document.getElementById('q-now').textContent = state.qIndex + 1;
+  document.getElementById('q-total').textContent = total;
+  document.getElementById('progress').style.width = (state.qIndex/total*100) + '%';
+
+  const qEl = document.getElementById('question-text');
+  qEl.style.opacity = 0;
+  qEl.innerHTML = `<span class="q-mark">Q${state.qIndex+1}.</span>${q.text[lang]}`;
+  requestAnimationFrame(()=>{ qEl.style.opacity = 1; });
+
+  const optWrap = document.getElementById('options');
+  optWrap.innerHTML = '';
+  [q.a, q.b].forEach((opt, idx)=>{
+    const key = idx===0 ? 'A' : 'B';
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.innerHTML = `<span class="key">${key}</span><span class="txt">${opt.t[lang]}</span><span class="arrow">→</span>`;
+    btn.addEventListener('click', ()=> choose(opt.k));
+    optWrap.appendChild(btn);
+    btn.style.opacity = 0; btn.style.transform = 'translateY(12px)';
+    setTimeout(()=>{
+      btn.style.transition = 'opacity .35s, transform .35s';
+      btn.style.opacity = 1; btn.style.transform = 'translateY(0)';
+    }, 80 + idx*70);
+  });
+}
+
+/* ---------- 13. 选择并推进 ---------- */
+function choose(letter){
+  state.scores[letter]++;
+  Sound.select();
+  if (navigator.vibrate) navigator.vibrate(8);
+
+  if (state.qIndex < QUESTIONS.length - 1){
+    state.qIndex++;
+    renderQuestion();
+  } else {
+    document.getElementById('progress').style.width = '100%';
+    setTimeout(()=>{ Sound.result(); showResult(); }, 350);
+  }
+}
+
+/* ---------- 14. 计算 & 渲染结果 ---------- */
+function calcType(){
+  const pick = (x,y)=> state.scores[x] >= state.scores[y] ? x : y;
+  return pick('E','I') + pick('S','N') + pick('T','F') + pick('J','P');
+}
+
+function showResult(){
+  state.lastType = calcType();
+  renderResult();
+  showScreen('result');
+}
+
+function renderResult(){
+  const code = state.lastType; if (!code) return;
+  const t = TYPES[code];
+  const lang = state.lang;
+  const u = UI[lang];
+  const accent = t.color;
+
+  // 类型代码（逐字弹出）
+  const codeEl = document.getElementById('type-code');
+  codeEl.innerHTML = code.split('').map((l,i)=>
+    `<span class="ltr" style="color:${AXIS_LABELS[l].color};animation-delay:${i*0.12}s">${l}</span>`
+  ).join('');
+  document.getElementById('type-nick').textContent = t.nick[lang];
+
+  const groupEl = document.getElementById('type-group');
+  groupEl.innerHTML = `<span class="icn">${GROUP_ICN[t.group]}</span> ${GROUPS[t.group][lang]}`;
+  groupEl.style.background = accent + '22';
+  groupEl.style.color = accent;
+
+  document.getElementById('type-desc').textContent = t.desc[lang];
+
+  // 优势
+  document.getElementById('strengths').innerHTML = t.strengths.map(s=>
+    `<li><span class="star">✦</span>${strengthText(s, lang)}</li>`).join('');
+
+  // 名人
+  const famousEl = document.getElementById('famous-list');
+  famousEl.innerHTML = t.famous.map(f=>{
+    const initial = f.name.charAt(0);
+    return `<li class="famous-item">
+      <div class="avatar" style="background:${accent}">${initial}</div>
+      <div class="finfo"><div class="fname">${f.name}</div><div class="frole">${f.role[lang]}</div></div>
+    </li>`;
+  }).join('');
+
+  // 维度倾向条
+  const dims = document.getElementById('dims');
+  dims.innerHTML = '';
+  [['E','I'],['S','N'],['T','F'],['J','P']].forEach(([a,b])=>{
+    const sa = state.scores[a], sb = state.scores[b];
+    const tot = sa + sb || 1;
+    const pa = Math.round(sa/tot*100);
+    const winner = sa >= sb ? a : b;
+    const row = document.createElement('div');
+    row.className = 'dim';
+    row.innerHTML = `
+      <div class="dim-top">
+        <span data-letter="${a}" style="color:${AXIS_LABELS[a].color}">${AXIS_LABELS[a].name[lang]} ${sa}</span>
+        <span data-letter="${b}" style="color:${AXIS_LABELS[b].color}">${AXIS_LABELS[b].name[lang]} ${sb}</span>
+      </div>
+      <div class="dim-bar">
+        <div class="seg" data-w="${pa}" style="background:${AXIS_LABELS[a].color}"></div>
+        <div class="seg" data-w="${100-pa}" style="background:${AXIS_LABELS[b].color}"></div>
+      </div>`;
+    dims.appendChild(row);
+    // 标记胜出一侧
+    const spans = row.querySelectorAll('.dim-top span');
+    spans[sa>=sb?0:1].classList.add('winner');
+  });
+  // 触发维度条动画
+  requestAnimationFrame(()=>{
+    dims.querySelectorAll('.seg').forEach(s=>{ s.style.width = s.dataset.w + '%'; });
+  });
+
+  // 稀有度
+  document.getElementById('rarity-v').textContent = t.rarity;
+  document.getElementById('rarity-rank').textContent = RANKS[t.rank][lang];
+
+  // 更新标题
+  document.title = `${code} ${t.nick[lang]} — Personality Quest`;
+}
+
+/* ---------- 15. Canvas 分享图 ---------- */
+function drawShareImage(code){
+  const lang = state.lang;
+  const t = TYPES[code];
+  const u = UI[lang];
+  const canvas = document.getElementById('share-canvas');
+  const W = 1080, H = 1080;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // 背景渐变
+  const g = ctx.createLinearGradient(0, 0, W, H);
+  g.addColorStop(0, '#FFE3D3'); g.addColorStop(0.5, '#E8DEFF'); g.addColorStop(1, '#C9E7FF');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+  // 装饰圆
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.beginPath(); ctx.arc(150, 220, 180, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(950, 880, 220, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = 'rgba(139,92,246,0.12)';
+  ctx.beginPath(); ctx.arc(900, 180, 120, 0, Math.PI*2); ctx.fill();
+
+  // 顶部小标签
+  ctx.fillStyle = '#5B5575';
+  ctx.font = '700 30px "Plus Jakarta Sans", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(u.resultLabel, W/2, 150);
+
+  // 大类型代码（彩色字母）
+  const letters = code.split('');
+  ctx.font = '800 300px "Fraunces", Georgia, serif';
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
+  const widths = letters.map(l => ctx.measureText(l).width);
+  const total = widths.reduce((a,b)=>a+b, 0);
+  let x = (W - total) / 2;
+  letters.forEach((l, i)=>{
+    ctx.fillStyle = AXIS_LABELS[l].color;
+    ctx.fillText(l, x, 400);
+    x += widths[i];
+  });
+
+  // 昵称
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#1F1A33';
+  ctx.font = '600 62px "Fraunces", Georgia, serif';
+  ctx.fillText(t.nick[lang], W/2, 600);
+
+  // 群组徽章背景
+  const grpText = `${GROUP_ICN[t.group]} ${GROUPS[t.group][lang]}`;
+  ctx.font = '700 28px "Plus Jakarta Sans", sans-serif';
+  const grpW = ctx.measureText(grpText).width + 60;
+  ctx.fillStyle = t.color + '22';
+  roundRect(ctx, (W-grpW)/2, 650, grpW, 56, 28); ctx.fill();
+  ctx.fillStyle = t.color;
+  ctx.fillText(grpText, W/2, 683);
+
+  // 三个优势
+  ctx.fillStyle = '#1F1A33';
+  ctx.font = '600 32px "Plus Jakarta Sans", sans-serif';
+  const strLines = t.strengths.map(s => '✦  ' + strengthText(s, lang));
+  strLines.forEach((line, i)=>{ ctx.fillText(line, W/2, 800 + i*50); });
+
+  // 底部 CTA
+  ctx.fillStyle = '#1F1A33';
+  ctx.font = '700 38px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText(u.ctaShare, W/2, 990);
+
+  return canvas;
+}
+function roundRect(ctx, x, y, w, h, r){
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
+}
+
+/* ---------- 16. 分享弹窗（预览 + 下载 / 复制 / 原生分享） ---------- */
+function getShareText(){
+  const code = state.lastType;
+  if (!code) return '';
+  const t = TYPES[code];
+  const lang = state.lang;
+  if (lang==='zh') return `我是 ${code} ${t.nick.zh}！你的真实人格是？`;
+  if (lang==='ja') return `私は ${code} ${t.nick.ja}でした！あなたのタイプは？`;
+  return `I just got ${code} — ${t.nick.en}! What's your true type?`;
+}
+
+function openShareModal(){
+  const code = state.lastType;
+  if (!code) return;
+  try {
+    // 生成图片并预览
+    const canvas = drawShareImage(code);
+    const dataUrl = canvas.toDataURL('image/png');
+    state.shareDataUrl = dataUrl;
+    document.getElementById('share-preview-img').src = dataUrl;
+
+    // 同步生成 blob，供"原生分享"按钮使用
+    canvas.toBlob(blob=>{ state.shareBlob = blob; }, 'image/png');
+
+    // 移动端通常支持 navigator.share，显示"通过应用分享"按钮
+    const showApp = !!(navigator.canShare && navigator.share);
+    document.getElementById('btn-share-app').style.display = showApp ? 'flex' : 'none';
+
+    document.getElementById('share-modal').classList.add('show');
+  } catch(e){
+    // 兜底：canvas 出错时退化为纯文字分享
+    console.warn('Share image failed, falling back to text:', e);
+    showToast(UI[state.lang].shareFail);
+  }
+}
+
+function closeShareModal(){
+  document.getElementById('share-modal').classList.remove('show');
+}
+
+// 下载图片
+document.getElementById('btn-download').addEventListener('click', ()=>{
+  const code = state.lastType; if (!code) return;
+  if (!state.shareDataUrl){ showToast(UI[state.lang].shareFail); return; }
+  const a = document.createElement('a');
+  a.href = state.shareDataUrl;
+  a.download = `i-am-${code}.png`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  showToast(UI[state.lang].downloaded);
+});
+
+// 复制文案
+document.getElementById('btn-copy-text').addEventListener('click', async ()=>{
+  const u = UI[state.lang];
+  try {
+    await navigator.clipboard.writeText(`${getShareText()} ${location.href}`);
+    showToast(u.copied);
+  } catch(e){
+    // 退化：选中文本让用户手动复制
+    showToast(u.shareFail);
+  }
+});
+
+// 通过 App 原生分享（移动端）
+document.getElementById('btn-share-app').addEventListener('click', async ()=>{
+  const u = UI[state.lang];
+  try {
+    const blob = state.shareBlob;
+    if (blob && navigator.canShare && navigator.canShare({files:[new File([blob], 'result.png', {type:'image/png'})]})){
+      const file = new File([blob], `i-am-${state.lastType}.png`, {type:'image/png'});
+      await navigator.share({files:[file], title:'Personality Quest', text:getShareText()});
+    } else if (navigator.share){
+      await navigator.share({title:'Personality Quest', text:`${getShareText()} ${location.href}`});
+    } else {
+      showToast(u.shareFail);
+    }
+  } catch(e){ /* 用户取消分享，无需提示 */ }
+});
+
+document.getElementById('share-close').addEventListener('click', closeShareModal);
+// 点击遮罩关闭
+document.getElementById('share-modal').addEventListener('click', (e)=>{
+  if (e.target.id === 'share-modal') closeShareModal();
+});
+
+/* ---------- 17. 重玩 ---------- */
+function retry(){
+  state.qIndex = 0;
+  state.scores = {E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};
+  state.lastType = null;
+  document.getElementById('progress').style.width = '0%';
+  showScreen('start');
+}
+
+/* ---------- 18. Toast ---------- */
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove('show'), 2400);
+}
+
+/* ---------- 19. 事件绑定 ---------- */
+document.getElementById('btn-start').addEventListener('click', ()=>{
+  Sound.init();
+  Sound.start();
+  Sound.select();
+  state.qIndex = 0;
+  state.scores = {E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};
+  showScreen('quiz');
+  renderQuestion();
+});
+document.getElementById('btn-share').addEventListener('click', ()=>{
+  Sound.select();
+  openShareModal();
+});
+document.getElementById('btn-retry').addEventListener('click', retry);
+
+document.querySelectorAll('#lang-switcher button').forEach(btn=>{
+  btn.addEventListener('click', ()=> setLang(btn.dataset.lang));
+});
+
+document.getElementById('sound-toggle').addEventListener('click', ()=>{
+  Sound.init();
+  const on = Sound.toggle();
+  const btn = document.getElementById('sound-toggle');
+  btn.textContent = on ? '🔊' : '🔇';
+  btn.classList.toggle('muted', !on);
+});
+
+// 键盘快捷键
+document.addEventListener('keydown',(e)=>{
+  if (!screens.quiz.classList.contains('active')) return;
+  const key = e.key.toLowerCase();
+  const opts = document.querySelectorAll('#options .option');
+  if ((key==='a'||key==='1') && opts[0]) opts[0].click();
+  if ((key==='b'||key==='2') && opts[1]) opts[1].click();
+});
+
+/* ---------- 20. 初始化 ---------- */
+applyI18n();
+</script>
+</body>
+</html>
