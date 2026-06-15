@@ -1,0 +1,31 @@
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Dependencies
+node_modules/
+bower_components/
+
+# Build output
+dist/
+build/
+*.local
+
+# Environment
+.env
+.env.local
+
+# Claude
+.claude/

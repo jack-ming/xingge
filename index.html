@@ -155,6 +155,33 @@ body{
 }
 .btn-ghost:hover{transform:translateY(-2px);border-color:#C9BFFF}
 
+/* ============ 统计页 ============ */
+.stats-hero{text-align:center;padding:20px 0 8px}
+.stats-hero .big-num{font-family:var(--font-display);font-weight:800;font-size:clamp(56px,14vw,96px);line-height:1;background:linear-gradient(90deg,#FF6B6B,#8B5CF6,#2E9BFF);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:6px}
+.stats-hero .unit{font-size:15px;font-weight:600;color:var(--ink-soft)}
+.stats-note{text-align:center;font-size:12px;color:var(--ink-soft);margin:12px 0 24px;display:flex;align-items:center;justify-content:center;gap:6px}
+.stats-note .live-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;animation:pulse 1.6s infinite}
+
+.dist-card{background:var(--paper);border-radius:24px;padding:24px 22px;box-shadow:var(--shadow)}
+.dist-card h3{font-family:var(--font-display);font-size:18px;font-weight:700;margin-bottom:18px}
+.dist-list{list-style:none;display:flex;flex-direction:column;gap:11px}
+.dist-row{display:flex;align-items:center;gap:12px}
+.dist-row .code{font-family:var(--font-display);font-weight:800;font-size:15px;width:42px;flex-shrink:0}
+.dist-row .nick{font-size:12px;color:var(--ink-soft);width:78px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dist-row .bar-wrap{flex:1;height:22px;background:#F0EDFA;border-radius:8px;overflow:hidden;position:relative}
+.dist-row .bar-fill{height:100%;width:0;border-radius:8px;transition:width 1s cubic-bezier(.2,.8,.25,1)}
+.dist-row .count{font-family:var(--font-display);font-weight:700;font-size:14px;width:36px;text-align:right;flex-shrink:0;color:var(--ink)}
+
+.stats-status{text-align:center;padding:60px 20px;color:var(--ink-soft)}
+.stats-status .spinner{width:36px;height:36px;border:3px solid #E4DEF5;border-top-color:#8B5CF6;border-radius:50%;animation:spin 0.9s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.stats-status .msg{font-size:15px;line-height:1.6}
+.stats-status .retry-btn{margin-top:18px;background:var(--paper);border:2px solid var(--line);padding:10px 22px;border-radius:999px;font-family:inherit;font-weight:700;cursor:pointer;color:var(--ink);transition:border-color .2s}
+.stats-status .retry-btn:hover{border-color:#C9BFFF}
+
+.stats-actions{display:flex;justify-content:center;margin-top:24px}
+.stats-actions .btn-ghost{padding:14px 32px}
+
 /* 分享弹窗 */
 .share-modal{
   position:fixed;inset:0;z-index:200;
@@ -287,6 +314,25 @@ body{
       <button class="btn-ghost" id="btn-retry">↺ <span data-i18n="retry">Play again</span></button>
     </div>
   </section>
+
+  <!-- ============ 统计页（#stats） ============ -->
+  <section class="screen" id="screen-stats">
+    <div class="stats-hero">
+      <div class="result-tag" data-i18n="statsTitle">Live Statistics</div>
+      <div class="big-num" id="stats-total">—</div>
+      <div class="unit"><span data-i18n="totalViews">Total Visits</span></div>
+    </div>
+    <div class="stats-note"><span class="live-dot"></span><span data-i18n="statsNote">Real-time data</span></div>
+
+    <div class="dist-card">
+      <h3 data-i18n="typeDist">Personality Distribution</h3>
+      <div id="stats-content"></div>
+    </div>
+
+    <div class="stats-actions">
+      <button class="btn-ghost" id="btn-stats-back"><span data-i18n="backHome">← Back to Quiz</span></button>
+    </div>
+  </section>
 </main>
 
 <!-- 分享弹窗 -->
@@ -335,6 +381,15 @@ const UI = {
     copyText:'Copy share text',
     shareApp:'Share via app',
     shareTip:'Save the image, then post it to your story or send to a friend!',
+    statsTitle:'Live Statistics',
+    totalViews:'Total Visits',
+    typeDist:'Personality Distribution',
+    loading:'Loading data…',
+    loadFail:'Stats are temporarily unavailable. Please try again later.',
+    noData:'No one has completed the quiz yet. Be the first!',
+    viewsUnit:'visits',
+    backHome:'← Back to Quiz',
+    statsNote:'Real-time data · updates with every visit',
   },
   zh:{
     badge:'2 分钟 · 16 种可能',
@@ -357,6 +412,15 @@ const UI = {
     copyText:'复制分享文案',
     shareApp:'通过应用分享',
     shareTip:'保存图片，发到朋友圈或发给好友吧！',
+    statsTitle:'实时访问统计',
+    totalViews:'总访问量',
+    typeDist:'性格类型分布',
+    loading:'数据加载中…',
+    loadFail:'统计暂时不可用，请稍后重试',
+    noData:'还没有人完成测评，快来当第一个！',
+    viewsUnit:'次访问',
+    backHome:'← 返回测评',
+    statsNote:'实时数据 · 每次访问自动更新',
   },
   ja:{
     badge:'2分・16タイプ',
@@ -379,6 +443,15 @@ const UI = {
     copyText:'シェア文をコピー',
     shareApp:'アプリでシェア',
     shareTip:'画像を保存して、ストーリーズや友達に送ろう！',
+    statsTitle:'リアルタイム統計',
+    totalViews:'総アクセス数',
+    typeDist:'性格タイプ分布',
+    loading:'データを読み込み中…',
+    loadFail:'統計は一時的に利用できません。後でもう一度お試しください',
+    noData:'まだ誰も診断を完了していません。最初の人になろう！',
+    viewsUnit:'アクセス',
+    backHome:'← 診断に戻る',
+    statsNote:'リアルタイムデータ · アクセスのたびに更新',
   }
 };
 
@@ -928,11 +1001,111 @@ const Sound = {
   },
 };
 
+/* ---------- 9.5 访问统计模块（counterapi.dev V1，无需认证） ---------- */
+const Stats = {
+  BASE: 'https://api.counterapi.dev/v1',
+  NS: 'xingzuo-mbti-quest-v1',  // namespace：先到先得，足够独特即可
+  viewRecorded: false,
+  typeRecorded: false,
+
+  // 带超时和容错的请求；失败返回 null，绝不抛错
+  async _hit(path){
+    const controller = new AbortController();
+    const timer = setTimeout(()=> controller.abort(), 4000);
+    try {
+      const res = await fetch(`${this.BASE}/${this.NS}/${path}`, {signal: controller.signal});
+      clearTimeout(timer);
+      if (!res.ok) return null;
+      const data = await res.json();
+      return (typeof data.count === 'number') ? data.count : null;
+    } catch(e){
+      clearTimeout(timer);
+      return null;
+    }
+  },
+
+  // 页面首次加载时 +1（生命周期内只调一次）
+  recordView(){
+    if (this.viewRecorded) return;
+    this.viewRecorded = true;
+    this._hit('views/up');
+  },
+
+  // 测出结果时，对应类型 +1（防同会话重复）
+  recordType(code){
+    if (this.typeRecorded || !code) return;
+    this.typeRecorded = true;
+    this._hit(`${code}/up`);
+  },
+
+  // 拉取全部 17 个计数器（总访问 + 16 型）
+  async fetchAll(){
+    const codes = Object.keys(TYPES);
+    const names = ['views', ...codes];
+    const results = await Promise.all(
+      names.map(async n => ({ name: n, count: await this._hit(`${n}/`) }))
+    );
+    const data = {};
+    let fail = 0;
+    results.forEach(r => { if (r.count === null) fail++; data[r.name] = r.count; });
+    if (fail === names.length) throw new Error('all requests failed');
+    return data;
+  },
+
+  resetTypeLock(){ this.typeRecorded = false; },
+};
+
+/* ---------- 9.6 统计页渲染 ---------- */
+async function renderStats(){
+  const u = UI[state.lang];
+  const content = document.getElementById('stats-content');
+  const totalEl = document.getElementById('stats-total');
+
+  totalEl.textContent = '—';
+  content.innerHTML = `<div class="stats-status"><div class="spinner"></div><div class="msg">${u.loading}</div></div>`;
+
+  try {
+    const data = await Stats.fetchAll();
+    const total = data.views || 0;
+    totalEl.textContent = total.toLocaleString();
+
+    const lang = state.lang;
+    const counts = Object.keys(TYPES).map(c => ({code: c, count: data[c] || 0}));
+    counts.sort((a, b) => b.count - a.count);
+    const hasData = counts.some(c => c.count > 0);
+
+    if (!hasData && total === 0){
+      content.innerHTML = `<div class="stats-status"><div class="msg">${u.noData}</div></div>`;
+      return;
+    }
+
+    const maxCount = Math.max(1, counts[0].count);
+    content.innerHTML = `<ul class="dist-list">` + counts.map(c => {
+      const t = TYPES[c.code];
+      const pct = Math.max(2, (c.count / maxCount * 100));
+      return `<li class="dist-row">
+        <span class="code" style="color:${t.color}">${c.code}</span>
+        <span class="nick" title="${t.nick[lang]}">${t.nick[lang]}</span>
+        <div class="bar-wrap"><div class="bar-fill" data-w="${pct}" style="background:linear-gradient(90deg,${t.color},${t.color}bb)"></div></div>
+        <span class="count">${c.count}</span>
+      </li>`;
+    }).join('') + `</ul>`;
+
+    requestAnimationFrame(()=>{
+      content.querySelectorAll('.bar-fill').forEach(b => { b.style.width = b.dataset.w + '%'; });
+    });
+  } catch(e){
+    content.innerHTML = `<div class="stats-status"><div class="msg">${u.loadFail}</div><button class="retry-btn" id="stats-retry">↻ Retry</button></div>`;
+    document.getElementById('stats-retry').addEventListener('click', renderStats);
+  }
+}
+
 /* ---------- 10. 屏幕切换 ---------- */
 const screens = {
   start: document.getElementById('screen-start'),
   quiz:  document.getElementById('screen-quiz'),
   result:document.getElementById('screen-result'),
+  stats: document.getElementById('screen-stats'),
 };
 function showScreen(name){
   Object.values(screens).forEach(s=>s.classList.remove('active'));
@@ -960,6 +1133,7 @@ function setLang(lang){
   // 重新渲染当前可见屏幕
   if (screens.quiz.classList.contains('active')) renderQuestion();
   if (screens.result.classList.contains('active')) renderResult();
+  if (screens.stats.classList.contains('active')) renderStats();
 }
 
 /* ---------- 12. 渲染问题 ---------- */
@@ -1016,6 +1190,7 @@ function calcType(){
 
 function showResult(){
   state.lastType = calcType();
+  Stats.recordType(state.lastType);
   renderResult();
   showScreen('result');
 }
@@ -1264,7 +1439,9 @@ function retry(){
   state.qIndex = 0;
   state.scores = {E:0,I:0,S:0,N:0,T:0,F:0,J:0,P:0};
   state.lastType = null;
+  Stats.resetTypeLock();
   document.getElementById('progress').style.width = '0%';
+  if (location.hash) { location.hash = ''; }
   showScreen('start');
 }
 
@@ -1315,8 +1492,30 @@ document.addEventListener('keydown',(e)=>{
   if ((key==='b'||key==='2') && opts[1]) opts[1].click();
 });
 
-/* ---------- 20. 初始化 ---------- */
+// 统计页"返回"按钮
+document.getElementById('btn-stats-back').addEventListener('click', ()=>{
+  location.hash = '';
+});
+
+/* ---------- 20. hash 路由 ---------- */
+function handleHash(){
+  if (location.hash.toLowerCase() === '#stats'){
+    showScreen('stats');
+    renderStats();
+  } else {
+    // 离开统计页时才切回开始页，避免打断答题/结果流程
+    if (screens.stats.classList.contains('active')){
+      showScreen('start');
+    }
+  }
+}
+window.addEventListener('hashchange', handleHash);
+
+/* ---------- 21. 初始化 ---------- */
 applyI18n();
+Stats.recordView();   // 首次访问 +1（异步、静默失败）
+handleHash();         // 处理初始 hash（如直接打开 #stats）
+
 </script>
 </body>
 </html>
